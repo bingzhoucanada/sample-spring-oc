@@ -24,20 +24,9 @@ import java.util.Map;
 public class CustomerApplication {
 
 	private static final Logger LOG = LoggerFactory.getLogger(CustomerApplication.class);
-
-	@Value("${VERSION}")
-	String version;
 	
 	public static void main(String[] args) {
 		SpringApplication.run(CustomerApplication.class, args);
-	}
-
-	@PostConstruct
-	public void envs() {
-		Map<String, String> env = System.getenv();
-		for (String envName : env.keySet()) {
-			LOG.info("{}={}", envName, env.get(envName));
-		}
 	}
 
 	@Bean
@@ -47,7 +36,7 @@ public class CustomerApplication {
 					.apis(RequestHandlerSelectors.basePackage("com.binit.services.customer.controller"))
 					.paths(PathSelectors.any())
 				.build()
-				.apiInfo(new ApiInfoBuilder().version(version).title("Customer API").description("Documentation Customer API v" + version).build());
+				.apiInfo(new ApiInfoBuilder().version("1.0").title("Customer API").description("Documentation Customer API v1.0").build());
 	}
 
 	@Bean
