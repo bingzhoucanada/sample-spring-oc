@@ -1,0 +1,129 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  annotations:
+    pipeline.alpha.openshift.io/uses: >-
+      [{"name": "sample-spring-oc", "namespace": "", "kind":
+      "DeploymentConfig"}]
+  creationTimestamp: '2021-04-23T05:47:01Z'
+  labels:
+    app: jenkins-pipeline-example
+    name: sample-spring-oc-pipeline
+    template: springboot-sample-pipeline
+  name: sample-spring-oc-pipeline
+  namespace: cicd
+  resourceVersion: '986854'
+  selfLink: >-
+    /apis/build.openshift.io/v1/namespaces/cicd/buildconfigs/sample-spring-oc-pipeline
+  uid: 53397bb2-a3f7-11eb-b010-525400e4c0cd
+spec:
+  failedBuildsHistoryLimit: 5
+  nodeSelector: {}
+  output: {}
+  postCommit: {}
+  resources: {}
+  runPolicy: Serial
+  source:
+    type: None
+  strategy:
+    jenkinsPipelineStrategy:
+      jenkinsfile: >-
+        openshift.withCluster() {
+          env.PROJECT_NAME = openshift.project()
+        }
+
+        project = "${env.PROJECT_NAME}".trim()
+
+        echo "project: ${project}"
+
+        appName =
+        "${env.JOB_NAME}".trim().replaceAll("${project}-",'').replaceAll("${project}/",
+        '')
+
+        echo "appName: ${appName}"
+
+        buildVersion = ""
+
+        imageTag = ""
+
+
+        pipeline {
+            agent any
+            
+            tools {
+                maven 'maven'
+            }
+            
+            stages {
+                stage('Checkout') {
+                  steps {
+                    git branch: 'main',
+                        url: 'https://github.com/bingzhoucanada/sample-spring-oc.git'
+
+                    sh "ls -lat"
+
+                    echo 'Creating build version'
+                    sh 'echo `git rev-list HEAD --count`-`git rev-parse --short HEAD` > BUILDVERSION'
+
+                    script {
+                        buildVersion = readFile 'BUILDVERSION'
+                    }
+                  }
+                }
+                stage("Unit Tests") {    
+                    steps {
+                        script {
+                            def pom = readMavenPom file: 'pom.xml'
+                            print "pom: ${pom}"
+                            
+                            version = pom.version
+                            print "version: ${version}"
+                            
+                            sh "mvn -B clean test"
+                            //stash name: "unit_tests", includes: "target/surefire-reports/**", allowEmpty: true
+                        }
+                    }
+                }        
+                stage("Build") {
+                    steps {
+                        script {
+                            def pom = readMavenPom file: 'pom.xml'
+                            print "pom: ${pom}"
+                            
+                            version = pom.version
+                            print "version: ${version}"
+                            
+                            sh "mvn clean install -DskipTests"
+                        }
+                    }
+                }
+                stage("Container Build") {    
+                    steps {
+                        script {
+                            echo 'Prepare for docker build.'
+                            sh "ls -lat"
+                            echo '-----target-----------'
+                            sh "ls -lat target"
+                            sh "rm -rf runtime"
+                            sh "mkdir -p runtime"
+                            sh "mv target/*.jar runtime/${appName}.jar"
+                            sh "mv Dockerfile runtime/Dockerfile"
+
+                            echo 'Excuting docker build.'
+                            sh "oc start-build ${appName}-docker --from-dir=runtime --follow -n ${project}"
+                        }
+                    }
+                }                
+            }
+        }          
+    type: JenkinsPipeline
+  successfulBuildsHistoryLimit: 5
+  triggers:
+    - github:
+        secret: secret101
+      type: GitHub
+    - generic:
+        secret: secret101
+      type: Generic
+status:
+  lastVersion: 22
