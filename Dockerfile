@@ -4,8 +4,6 @@ ENV PROFILE=dev
 
 ENV PORT=8080
 
-USER root
-
 RUN mkdir -p /app
 
 WORKDIR /app

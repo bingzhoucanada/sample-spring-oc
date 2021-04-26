@@ -71,9 +71,19 @@ pipeline {
                     sh "mv Dockerfile runtime/Dockerfile"
 
                     echo 'Excuting docker build.'
-                    //sh "oc start-build ${appName}-docker --from-dir=runtime --follow -n ${project}"
+                    sh "oc start-build ${appName}-docker --from-dir=runtime --follow -n ${project}"
                 }
             }
-        }                
+        }
+        stage("Deployment") {
+            echo 'Deploying image'
+            
+            patchDeployment(imageTag: "latest", project: project, appName: appName)
+            
+            rolloutDeployment(projectName: project, targetApp: appName)
+        }
+        stage("Verify Deployment") {
+            verifyDeployment(projectName: project, targetApp: appName)
+        }
     }
 }          

@@ -1,0 +1,28 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  labels:
+    app: sample-spring-oc-pipeline-docker
+  name: sample-spring-oc-pipeline-docker
+  namespace: cicd
+  resourceVersion:
+  selfLink: /apis/build.openshift.io/v1/namespaces/cicd/buildconfigs/sample-spring-oc-pipeline-docker
+spec:
+  nodeSelector: null
+  output:
+    to:
+      kind: ImageStreamTag
+      name: 'sample-spring-oc:latest'
+  postCommit: {}
+  resources: {}
+  runPolicy: Serial
+  source:
+    binary: {}
+    type: Binary
+  strategy:
+    dockerStrategy:
+        dockerfilePath: Dockerfile
+    type: Docker
+  triggers: []
+status:
+  lastVersion: 3
