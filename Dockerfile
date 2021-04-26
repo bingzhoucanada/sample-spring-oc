@@ -1,4 +1,4 @@
-FROM scratch
+FROM openjdk:8-jre-alpine
 
 ENV PROFILE=dev
 
