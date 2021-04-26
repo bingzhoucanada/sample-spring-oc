@@ -8,8 +8,8 @@ RUN mkdir -p /app
 
 WORKDIR /app
 
-RUN echo $(ls)
-
 COPY *.jar ./sample-spring-oc.jar
 
-CMD jar -jar /app/sample-spring-oc.jar --spring.profiles.active=$PROFILE
+RUN echo $(ls)
+
+CMD java -jar /app/sample-spring-oc.jar --spring.profiles.active=$PROFILE
