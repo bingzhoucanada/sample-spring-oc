@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: customer
+  cloud:
+    config:
+      name: config-repo
+      enabled: true
+      failFast: true
+      uri: http://config-service:8080
+
+---
+spring:
+  profiles: local
+  cloud:
+    config:
+      name: config-repo
+      enabled: true
+      failFast: true
+      uri: http://config-service-cicd.192.168.42.28.nip.io
